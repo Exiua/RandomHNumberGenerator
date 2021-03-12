@@ -1,10 +1,8 @@
 import json
-import os.path
 from random import randint
-import sys
 import configparser
 import time
-from os import path, write
+from os import path
 import PySimpleGUI as sg
 from bs4 import BeautifulSoup
 from selenium import webdriver
