@@ -132,3 +132,4 @@ dmypy.json
 config.ini 
 test.py
 geckodriver.log
+blacklist.json
