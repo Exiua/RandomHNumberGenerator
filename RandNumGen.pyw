@@ -363,6 +363,8 @@ class RandomNHCodeGen():
                 if self.is_valid(input_tag):
                     if input_tag in self.blacklist or selected_lang in self.blacklist:
                         sg.popup_ok('Tag or language is in blacklist')
+                    if any(input_tag in val for val in self.languages.values()):
+                        sg.popup_ok('Use the dropdown to select a language')
                     else:
                         gen_num = self.generate(input_tag, selected_lang)
                         window.find_element('-OUT-').print(gen_num)
