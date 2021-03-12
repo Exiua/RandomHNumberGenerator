@@ -1,6 +1,7 @@
 import json
 from random import randint
 import configparser
+from threading import Thread
 import time
 from os import path
 import PySimpleGUI as sg
@@ -21,6 +22,7 @@ class RandomNHCodeGen():
         self.categories = read_from_file("Index/categories.json")
         self.not_exist = read_from_file("Index/404Galleries.json")
         self.completed_gallery = int(read_from_file("Index/lastCompleted.txt"))
+        self.kill_thread = False
         try:
             self.blacklist = read_from_file("Index/blacklist.json")
         except FileNotFoundError:
@@ -138,6 +140,9 @@ class RandomNHCodeGen():
             max_gallery = int(max_gallery)
             if self.completed_gallery != max_gallery: #Only run if there are new galleries to index
                 for i in range(self.completed_gallery, max_gallery):
+                    if self.kill_thread:
+                        print("Thread killed")
+                        break
                     i += 1 #Starting gallery is already indexed
                     if(self.does_exist(i, driver)):
                         driver.get("".join([self.GENERAL_URL, str(i)])) #Loads the gallery
@@ -260,7 +265,7 @@ class RandomNHCodeGen():
                                 self.categories[t[2]].append(num)
                             else:
                                 self.categories[t[2]] = [num]
-                print("Completed")
+                print("".join(["Reindex Gallery #", str(num)]))
             else:
                 print("Completed")
         finally:
@@ -281,6 +286,9 @@ class RandomNHCodeGen():
         driver = webdriver.Firefox(options=options)
         try:
             for i in range(int(num), int(read_from_file("Index/lastCompleted.txt"))): #From 1 (or specified) to last index gallery
+                if self.kill_thread:
+                    print("Thread killed")
+                    break
                 if i % 10 == 0:
                     print(i)
                 if not i in self.not_exist and not any(i in val for val in self.parodies.values()): #Checks if gallery exists and is in any of the dictionaries
@@ -292,8 +300,9 @@ class RandomNHCodeGen():
                                         if not any(i in val for val in self.categories.values()):
                                             if(self.does_exist(i, driver)): #If gallery exists and was not properly index
                                                 print("".join(["Gallery ", str(i), " was not properly indexed"]))
-                                                self.index_gallery(i) #Index missing gallery
-            print("All galleries indexed")
+                                                self.index_gallery(i)
+                if i == int(read_from_file("Index/lastCompleted.txt")):
+                    print("All galleries indexed")
         finally:
             driver.quit()
             save_to_file("Index/404Galleries.json", self.not_exist)
@@ -327,19 +336,23 @@ class RandomNHCodeGen():
         #Layout of GUI
         generator_layout = [[sg.Text('Enter Tag: '), sg.InputText(key='-TAG-'), sg.Button('Generate')],
                             [sg.Text('Language: '), sg.Drop(lang, default_value=selected_lang, key='-LANGUAGE-', enable_events=True)],
-                            [sg.Multiline(size=(63,5), disabled=True, autoscroll=False, key='-OUT-', write_only=True)]]
+                            [sg.Multiline(size=(63,7), disabled=True, autoscroll=False, key='-OUT-', write_only=True)]]
         settings_layout = [[sg.Text('Change Theme:'), sg.Drop(sg.theme_list(), default_value=selected_theme, key='-THEME-', enable_events=True)],
-                            [sg.Text('Blacklist Settings:'), sg.Button('Configure'), sg.Button('Display'), sg.Button('Clear')]]
+                            [sg.Text('Blacklist Settings:'), sg.Button('Configure'), sg.Button('Display'), sg.Button('Clear')],
+                            [sg.Text('Manage Gallery Indices:'), sg.Button('Update'), sg.Button('Verify'), sg.Button('Reindex'), sg.Button('Kill')],
+                            [sg.Multiline(size=(63,5), key = '-DEBUG-', echo_stdout_stderr=True, disabled=True, write_only=True, reroute_stderr=True, reroute_stdout=True, autoscroll=True)]]
         layout = [[sg.TabGroup([[sg.Tab('Generator', generator_layout), sg.Tab('Settings', settings_layout)]])]]
 
         # Create the Window
         window = sg.Window("RandomHNumberGenerator v1.0.0", layout)
-
-        #helper_thread = threading.Thread(target=self.generate, args=(), daemon=True)
+        #Helper thread to allow GUI to run while updating happens
+        helper_thread = Thread(target=self.generate, args=(), daemon=True)
         # Event Loop to process "events" and get the "values" of the inputs
         while True:
             event, values = window.read()
             if event in (sg.WIN_CLOSED, 'Cancel'): #Save files when gui is closed
+                if helper_thread.is_alive():
+                    self.kill_thread = True
                 save_to_file("Index/blacklist.json", self.blacklist)
                 write_config('DEFAULT', 'Theme', selected_theme)
                 write_config('DEFAULT', 'Language', selected_lang)
@@ -353,7 +366,6 @@ class RandomNHCodeGen():
                     else:
                         gen_num = self.generate(input_tag, selected_lang)
                         window.find_element('-OUT-').print(gen_num)
-                        print(gen_num)
                 elif ',' in input_tag:
                     sg.popup_ok('Only enter 1 tag')
                 else:
@@ -366,6 +378,34 @@ class RandomNHCodeGen():
                 sg.popup_ok(''.join(['Blacklist: \n', str(self.blacklist)]))
             if event == 'Clear':
                 self.blacklist = []
+            if event == 'Update':
+                if not helper_thread.is_alive():
+                    self.kill_thread = False
+                    helper_thread = Thread(target=self.index_galleries, args=(), daemon=True)
+                    helper_thread.start()
+                else:
+                    sg.popup_ok('Please wait for currently running operation to finish')
+            if event == 'Verify':
+                if not helper_thread.is_alive():
+                    self.kill_thread = False
+                    helper_thread = Thread(target=self.shallow_check, args=(), daemon=True)
+                    helper_thread.start()
+                else:
+                    sg.popup_ok('Please wait for currently running operation to finish')
+            if event == 'Reindex':
+                user_ans = sg.popup_yes_no('Are you sure you want to reindex all 350k+ galleries? (You can kill the process to split the operation into chunks)')
+                if user_ans == 'Yes':
+                    if not helper_thread.is_alive():
+                        self.kill_thread = False
+                        helper_thread = Thread(target=self.index_galleries, args=(True), daemon=True)
+                        helper_thread.start()
+                    else:
+                        sg.popup_ok('Please wait for currently running operation to finish')
+            if event == 'Kill':
+                if helper_thread.is_alive():
+                    self.kill_thread = True
+                else:
+                    sg.popup_ok('There are no currently running operations')
             selected_lang = values['-LANGUAGE-']
             selected_theme = values['-THEME-']
         window.close()
@@ -407,9 +447,9 @@ def read_config(header, child):
     config.read(CONFIG)
     if not path.isfile(CONFIG):
         config['DEFAULT'] = {}
-        config['DEFAULT']['Theme'] = 'Dark'
+        config['DEFAULT']['Theme'] = 'Dark Grey 9'
         config['DEFAULT']['Language'] = 'all'
-        with open(CONFIG, 'w') as configfile:    # save
+        with open(CONFIG, 'w') as configfile:    # save default config
             config.write(configfile)
     return config.get(header, child)
 
@@ -418,7 +458,7 @@ def write_config(header, child, change):
     config = configparser.ConfigParser()
     config.read(CONFIG)
     config[header][child] = change
-    with open(CONFIG, 'w') as configfile:    # save
+    with open(CONFIG, 'w') as configfile:    # save to config
         config.write(configfile)
 
 if __name__ == "__main__":
