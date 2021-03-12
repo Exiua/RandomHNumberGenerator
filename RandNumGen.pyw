@@ -12,17 +12,17 @@ CONFIG = 'config.ini'
 
 class RandomNHCodeGen():
     def __init__(self):
-        self.parodies = read_from_file("parodies.json")
-        self.characters = read_from_file("characters.json")
-        self.tags = read_from_file("tags.json")
-        self.artists = read_from_file("artists.json")
-        self.groups = read_from_file("groups.json")
-        self.languages = read_from_file("languages.json")
-        self.categories = read_from_file("categories.json")
-        self.not_exist = read_from_file("404Galleries.json")
-        self.completed_gallery = int(read_from_file("lastCompleted.txt"))
+        self.parodies = read_from_file("Index/parodies.json")
+        self.characters = read_from_file("Index/characters.json")
+        self.tags = read_from_file("Index/tags.json")
+        self.artists = read_from_file("Index/artists.json")
+        self.groups = read_from_file("Index/groups.json")
+        self.languages = read_from_file("Index/languages.json")
+        self.categories = read_from_file("Index/categories.json")
+        self.not_exist = read_from_file("Index/404Galleries.json")
+        self.completed_gallery = int(read_from_file("Index/lastCompleted.txt"))
         try:
-            self.blacklist = read_from_file("blacklist.json")
+            self.blacklist = read_from_file("Index/blacklist.json")
         except FileNotFoundError:
             self.blacklist = []
         self.GENERAL_URL = "https://nhentai.net/g/" 
@@ -193,15 +193,15 @@ class RandomNHCodeGen():
                 print("Completed")
         finally:
             driver.quit()
-            save_to_file("parodies.json", self.parodies) #Save the dictionaries to files
-            save_to_file("characters.json", self.characters)
-            save_to_file("tags.json", self.tags)
-            save_to_file("artists.json", self.artists)
-            save_to_file("groups.json", self.groups)
-            save_to_file("languages.json", self.languages)
-            save_to_file("categories.json", self.categories)
-            save_to_file("lastCompleted.txt", self.completed_gallery)
-            save_to_file("404Galleries.json", self.not_exist)
+            save_to_file("Index/parodies.json", self.parodies) #Save the dictionaries to files
+            save_to_file("Index/characters.json", self.characters)
+            save_to_file("Index/tags.json", self.tags)
+            save_to_file("Index/artists.json", self.artists)
+            save_to_file("Index/groups.json", self.groups)
+            save_to_file("Index/languages.json", self.languages)
+            save_to_file("Index/categories.json", self.categories)
+            save_to_file("Index/lastCompleted.txt", self.completed_gallery)
+            save_to_file("Index/404Galleries.json", self.not_exist)
     
     def index_gallery(self, num):
         """Index specified gallery"""
@@ -265,13 +265,13 @@ class RandomNHCodeGen():
                 print("Completed")
         finally:
             driver.quit()
-            save_to_file("parodies.json", self.parodies) #Save the dictionaries to files
-            save_to_file("characters.json", self.characters)
-            save_to_file("tags.json", self.tags)
-            save_to_file("artists.json", self.artists)
-            save_to_file("groups.json", self.groups)
-            save_to_file("languages.json", self.languages)
-            save_to_file("categories.json", self.categories)
+            save_to_file("Index/parodies.json", self.parodies) #Save the dictionaries to files
+            save_to_file("Index/characters.json", self.characters)
+            save_to_file("Index/tags.json", self.tags)
+            save_to_file("Index/artists.json", self.artists)
+            save_to_file("Index/groups.json", self.groups)
+            save_to_file("Index/languages.json", self.languages)
+            save_to_file("Index/categories.json", self.categories)
 
     def shallow_check(self, num=1):
         """Quickly check if all galleries have been indexed"""
@@ -280,7 +280,7 @@ class RandomNHCodeGen():
         options.add_argument = ("user-agent=Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z‡ Safari/537.36")
         driver = webdriver.Firefox(options=options)
         try:
-            for i in range(int(num), int(read_from_file("lastCompleted.txt"))): #From 1 (or specified) to last index gallery
+            for i in range(int(num), int(read_from_file("Index/lastCompleted.txt"))): #From 1 (or specified) to last index gallery
                 if i % 10 == 0:
                     print(i)
                 if not i in self.not_exist and not any(i in val for val in self.parodies.values()): #Checks if gallery exists and is in any of the dictionaries
@@ -296,7 +296,7 @@ class RandomNHCodeGen():
             print("All galleries indexed")
         finally:
             driver.quit()
-            save_to_file("404Galleries.json", self.not_exist)
+            save_to_file("Index/404Galleries.json", self.not_exist)
 
     def sort_dict(self):
         """Sort the lists in each dictionary"""
@@ -307,13 +307,13 @@ class RandomNHCodeGen():
                     d[k] = sorted(d.get(k))
             print("Sorted")
         finally:
-            save_to_file("parodies.json", self.parodies) #Save the dictionaries to files
-            save_to_file("characters.json", self.characters)
-            save_to_file("tags.json", self.tags)
-            save_to_file("artists.json", self.artists)
-            save_to_file("groups.json", self.groups)
-            save_to_file("languages.json", self.languages)
-            save_to_file("categories.json", self.categories)
+            save_to_file("Index/parodies.json", self.parodies) #Save the dictionaries to files
+            save_to_file("Index/characters.json", self.characters)
+            save_to_file("Index/tags.json", self.tags)
+            save_to_file("Index/artists.json", self.artists)
+            save_to_file("Index/groups.json", self.groups)
+            save_to_file("Index/languages.json", self.languages)
+            save_to_file("Index/categories.json", self.categories)
 
     def gui(self):
         """Run the GUI of the program"""
@@ -340,7 +340,7 @@ class RandomNHCodeGen():
         while True:
             event, values = window.read()
             if event in (sg.WIN_CLOSED, 'Cancel'): #Save files when gui is closed
-                save_to_file("blacklist.json", self.blacklist)
+                save_to_file("Index/blacklist.json", self.blacklist)
                 write_config('DEFAULT', 'Theme', selected_theme)
                 write_config('DEFAULT', 'Language', selected_lang)
                 break
