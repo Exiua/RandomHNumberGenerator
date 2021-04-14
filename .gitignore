@@ -133,3 +133,4 @@ config.ini
 test.py
 geckodriver.log
 blacklist.json
+file_compressor.py
