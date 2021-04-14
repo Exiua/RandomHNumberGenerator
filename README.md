@@ -7,4 +7,4 @@ The RandomHNumberGenerator will generate a random nHentai gallery number based o
 
 ## How To Use
 
-Download the source code from the [latest release](https://github.com/Exiua/NicheImageRipper/releases) and run `RandNumGen.pyw`. To get a random gallery number, click the 'Generate' button. If you want to specify a tag, enter the tag into the input field. If you want to specify a language, choose a language from the dropdown box. (Specifying a tag and/or a language is optional)
+Download `RandomHNumberGenerator.rar` from the [latest release](https://github.com/Exiua/NicheImageRipper/releases), and extract and run `RandNumGen.pyw`. To get a random gallery number, click the 'Generate' button. If you want to specify a tag, enter the tag into the input field. If you want to specify a language, choose a language from the dropdown box. (Specifying a tag and/or a language is optional)
