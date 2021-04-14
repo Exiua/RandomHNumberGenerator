@@ -344,7 +344,7 @@ class RandomNHCodeGen():
         layout = [[sg.TabGroup([[sg.Tab('Generator', generator_layout), sg.Tab('Settings', settings_layout)]])]]
 
         # Create the Window
-        window = sg.Window("RandomHNumberGenerator v1.0.0", layout)
+        window = sg.Window("RandomHNumberGenerator v1.0.1", layout)
         #Helper thread to allow GUI to run while updating happens
         helper_thread = Thread(target=self.generate, args=(), daemon=True)
         # Event Loop to process "events" and get the "values" of the inputs
