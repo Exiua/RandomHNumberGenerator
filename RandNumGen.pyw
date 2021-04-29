@@ -291,39 +291,20 @@ class RandomNHCodeGen():
                     break
                 if i % 10 == 0:
                     print(i)
-                if not i in self.not_exist and not any(i in val for val in self.parodies.values()): #Checks if gallery exists and is in any of the dictionaries
-                    if not any(i in val for val in self.characters.values()):
-                        if not any(i in val for val in self.tags.values()):
-                            if not any(i in val for val in self.artists.values()):
-                                if not any(i in val for val in self.groups.values()):
-                                    if not any(i in val for val in self.languages.values()):
-                                        if not any(i in val for val in self.categories.values()):
-                                            if(self.does_exist(i, driver)): #If gallery exists and was not properly index
-                                                print("".join(["Gallery ", str(i), " was not properly indexed"]))
-                                                self.index_gallery(i)
-                if i == int(read_from_file("Index/lastCompleted.txt")):
-                    print("All galleries indexed")
-        finally:
-            driver.quit()
-            save_to_file("Index/404Galleries.json", self.not_exist)
-
-    def recheck(self, num: int = 1):
-        """Checks if previously indexed galleries have been deleted from nhentai.net"""
-        options = Options()
-        options.headless = True
-        options.add_argument = ("user-agent=Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z‡ Safari/537.36")
-        driver = webdriver.Firefox(options=options)
-        try:
-            for i in range(int(num), int(read_from_file("Index/lastCompleted.txt"))): #From 1 (or specified) to last index gallery
-                if self.kill_thread:
-                    print("Thread killed")
-                    break
-                if i % 10 == 0:
-                    print(i)
-                if not i in self.not_exist: #Checks if gallery exists and is in any of the dictionaries
-                    if not self.does_exist(i, driver): #If gallery exists and was not properly index
+                if not i in self.not_exist: #Checks if gallery exists
+                    if not self.does_exist(i, driver): #If gallery no longer exists and was indexed
                         print("".join(["Gallery ", str(i), " no longer exists"]))
                         self.remove_index(i)
+                    elif not any(i in val for val in self.parodies.values()): #Checks if gallery is in any of the dictionaries
+                        if not any(i in val for val in self.characters.values()): 
+                            if not any(i in val for val in self.tags.values()):
+                                if not any(i in val for val in self.artists.values()):
+                                    if not any(i in val for val in self.groups.values()):
+                                        if not any(i in val for val in self.languages.values()):
+                                            if not any(i in val for val in self.categories.values()):
+                                                if(self.does_exist(i, driver)): #If gallery exists and was not properly index
+                                                    print("".join(["Gallery ", str(i), " was not properly indexed"]))
+                                                    self.index_gallery(i)
                 if i == int(read_from_file("Index/lastCompleted.txt")):
                     print("All galleries indexed")
         finally:
