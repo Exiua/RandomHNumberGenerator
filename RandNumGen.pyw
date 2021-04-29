@@ -29,7 +29,7 @@ class RandomNHCodeGen():
             self.blacklist = []
         self.GENERAL_URL = "https://nhentai.net/g/" 
 
-    def does_exist(self, num, driver):
+    def does_exist(self, num: int, driver: webdriver.Firefox) -> bool:
         """Check if the gallery exists"""
         driver.get("".join([self.GENERAL_URL, str(num), "/"]))
         html = driver.page_source
@@ -41,7 +41,7 @@ class RandomNHCodeGen():
         else:
             return True
 
-    def contains_tag(self, num, tag):
+    def contains_tag(self, num: int, tag: str) -> bool:
         """Checks if gallery contains tag"""
         if tag in self.tags.keys():
             return num in self.tags[tag]
@@ -58,7 +58,7 @@ class RandomNHCodeGen():
         if tag in self.parodies.keys():
             return num in self.parodies[tag]
 
-    def find_tag_dict(self, tag):
+    def find_tag_dict(self, tag: str) -> dict:
         """Find the dictionary that contains the tag"""
         if tag in self.tags.keys():
             return self.tags
@@ -73,7 +73,7 @@ class RandomNHCodeGen():
         if tag in self.categories.keys():
             return self.categories
 
-    def generate(self, tag='', lang='all'):
+    def generate(self, tag: str = '', lang: str = 'all') -> int:
         """Generate random gallery number"""
         valid_gallery = False
         fail = False
@@ -116,7 +116,7 @@ class RandomNHCodeGen():
                 valid_gallery = True
         return gallery_num
 
-    def index_galleries(self, restart=False):
+    def index_galleries(self, restart: bool = False):
         """Order galleries bases on tags"""
         if restart:
             self.parodies = {}
@@ -208,7 +208,7 @@ class RandomNHCodeGen():
             save_to_file("Index/lastCompleted.txt", self.completed_gallery)
             save_to_file("Index/404Galleries.json", self.not_exist)
     
-    def index_gallery(self, num):
+    def index_gallery(self, num: int):
         """Index specified gallery"""
         num = int(num)
         options = Options()
@@ -278,7 +278,7 @@ class RandomNHCodeGen():
             save_to_file("Index/languages.json", self.languages)
             save_to_file("Index/categories.json", self.categories)
 
-    def shallow_check(self, num=1):
+    def shallow_check(self, num: int = 1):
         """Quickly check if all galleries have been indexed"""
         options = Options()
         options.headless = True
@@ -306,6 +306,46 @@ class RandomNHCodeGen():
         finally:
             driver.quit()
             save_to_file("Index/404Galleries.json", self.not_exist)
+
+    def recheck(self, num: int = 1):
+        """Checks if previously indexed galleries have been deleted from nhentai.net"""
+        options = Options()
+        options.headless = True
+        options.add_argument = ("user-agent=Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z‡ Safari/537.36")
+        driver = webdriver.Firefox(options=options)
+        try:
+            for i in range(int(num), int(read_from_file("Index/lastCompleted.txt"))): #From 1 (or specified) to last index gallery
+                if self.kill_thread:
+                    print("Thread killed")
+                    break
+                if i % 10 == 0:
+                    print(i)
+                if not i in self.not_exist: #Checks if gallery exists and is in any of the dictionaries
+                    if not self.does_exist(i, driver): #If gallery exists and was not properly index
+                        print("".join(["Gallery ", str(i), " no longer exists"]))
+                        self.remove_index(i)
+                if i == int(read_from_file("Index/lastCompleted.txt")):
+                    print("All galleries indexed")
+        finally:
+            driver.quit()
+            save_to_file("Index/parodies.json", self.parodies) #Save the dictionaries to files
+            save_to_file("Index/characters.json", self.characters)
+            save_to_file("Index/tags.json", self.tags)
+            save_to_file("Index/artists.json", self.artists)
+            save_to_file("Index/groups.json", self.groups)
+            save_to_file("Index/languages.json", self.languages)
+            save_to_file("Index/categories.json", self.categories)
+            save_to_file("Index/lastCompleted.txt", self.completed_gallery)
+            save_to_file("Index/404Galleries.json", self.not_exist)
+
+    def remove_index(self, idx: int):
+        """Removes index from all lists in all dictionaries"""
+        tag_dicts = (self.artists, self.categories, self.characters, self.groups, self.languages, self.parodies, self.tags)
+        for d in tag_dicts:
+            for key in d.keys():
+                d[key].remove(idx)
+        print("".join(["Removed gallery ", str(idx)]))
+
 
     def sort_dict(self):
         """Sort the lists in each dictionary"""
