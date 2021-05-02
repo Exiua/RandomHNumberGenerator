@@ -4,6 +4,7 @@ import configparser
 from threading import Thread
 import time
 from os import path
+import sys
 import PySimpleGUI as sg
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -319,14 +320,31 @@ class RandomNHCodeGen():
             save_to_file("Index/lastCompleted.txt", self.completed_gallery)
             save_to_file("Index/404Galleries.json", self.not_exist)
 
+    def check_removed_galleries(self):
+        try:
+            for idx in self.not_exist:
+                self.remove_index(idx)
+        finally:
+            save_to_file("Index/parodies.json", self.parodies) #Save the dictionaries to files
+            save_to_file("Index/characters.json", self.characters)
+            save_to_file("Index/tags.json", self.tags)
+            save_to_file("Index/artists.json", self.artists)
+            save_to_file("Index/groups.json", self.groups)
+            save_to_file("Index/languages.json", self.languages)
+            save_to_file("Index/categories.json", self.categories)
+            save_to_file("Index/lastCompleted.txt", self.completed_gallery)
+            save_to_file("Index/404Galleries.json", self.not_exist)
+
     def remove_index(self, idx: int):
         """Removes index from all lists in all dictionaries"""
         tag_dicts = (self.artists, self.categories, self.characters, self.groups, self.languages, self.parodies, self.tags)
         for d in tag_dicts:
             for key in d.keys():
-                d[key].remove(idx)
+                try:
+                    d[key].remove(idx)
+                except ValueError:
+                    pass
         print("".join(["Removed gallery ", str(idx)]))
-
 
     def sort_dict(self):
         """Sort the lists in each dictionary"""
@@ -365,7 +383,7 @@ class RandomNHCodeGen():
         layout = [[sg.TabGroup([[sg.Tab('Generator', generator_layout), sg.Tab('Settings', settings_layout)]])]]
 
         # Create the Window
-        window = sg.Window("RandomHNumberGenerator v1.0.1", layout)
+        window = sg.Window("RandomHNumberGenerator v1.1.0", layout)
         #Helper thread to allow GUI to run while updating happens
         helper_thread = Thread(target=self.generate, args=(), daemon=True)
         # Event Loop to process "events" and get the "values" of the inputs
@@ -488,5 +506,7 @@ if __name__ == "__main__":
     gen = RandomNHCodeGen()
     #gen.index_galleries()
     #gen.shallow_check(sys.argv[1])
+    #gen.sort_dict()
     #gen.index_gallery(sys.argv[1])
+    #gen.check_removed_galleries()
     gen.gui()
