@@ -1,5 +1,5 @@
 # RandomHNumberGenerator [![Licensed under the MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Exiua/RandomHNumberGenerator/blob/main/LICENSE)
-[![Release Version](https://img.shields.io/github/v/release/Exiua/RandomHNumberGenerator)](https://github.com/Exiua/RandomHNumberGenerator/releases)
+[![Release Version](https://img.shields.io/github/v/release/Exiua/RandomHNumberGenerator)](https://github.com/Exiua/RandomHNumberGenerator/releases) ![GitHub all releases](https://img.shields.io/github/downloads/Exiua/RandomHNumberGenerator/total)
 
 # About
 
